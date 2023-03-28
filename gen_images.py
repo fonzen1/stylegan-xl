@@ -21,14 +21,16 @@ import torch
 import legacy
 from torch_utils import gen_utils
 
-#----------------------------------------------------------------------------
+# ----------------------------------------------------------------------------
+
 
 def parse_range(s: Union[str, List]) -> List[int]:
     '''Parse a comma separated list of numbers or ranges and return a list of ints.
 
     Example: '1,2,5-10' returns [1, 2, 5, 6, 7]
     '''
-    if isinstance(s, list): return s
+    if isinstance(s, list):
+        return s
     ranges = []
     range_re = re.compile(r'^(\d+)-(\d+)$')
     for p in s.split(','):
@@ -39,7 +41,8 @@ def parse_range(s: Union[str, List]) -> List[int]:
             ranges.append(int(p))
     return ranges
 
-#----------------------------------------------------------------------------
+# ----------------------------------------------------------------------------
+
 
 def parse_vec2(s: Union[str, Tuple[float, float]]) -> Tuple[float, float]:
     '''Parse a floating point 2-vector of syntax 'a,b'.
@@ -47,15 +50,17 @@ def parse_vec2(s: Union[str, Tuple[float, float]]) -> Tuple[float, float]:
     Example:
         '0,1' returns (0,1)
     '''
-    if isinstance(s, tuple): return s
+    if isinstance(s, tuple):
+        return s
     parts = s.split(',')
     if len(parts) == 2:
         return (float(parts[0]), float(parts[1]))
     raise ValueError(f'cannot parse 2-vector {s}')
 
-#----------------------------------------------------------------------------
+# ----------------------------------------------------------------------------
 
-def make_transform(translate: Tuple[float,float], angle: float):
+
+def make_transform(translate: Tuple[float, float], angle: float):
     m = np.eye(3)
     s = np.sin(angle/360.0*np.pi*2)
     c = np.cos(angle/360.0*np.pi*2)
@@ -67,7 +72,8 @@ def make_transform(translate: Tuple[float,float], angle: float):
     m[1][2] = translate[1]
     return m
 
-#----------------------------------------------------------------------------
+# ----------------------------------------------------------------------------
+
 
 @click.command()
 @click.option('--network', 'network_pkl', help='Network pickle filename', required=True)
@@ -88,7 +94,7 @@ def generate_images(
     centroids_path: str,
     noise_mode: str,
     outdir: str,
-    translate: Tuple[float,float],
+    translate: Tuple[float, float],
     rotate: float,
     class_idx: Optional[int]
 ):
@@ -102,7 +108,8 @@ def generate_images(
 
     # Generate images.
     for seed_idx, seed in enumerate(seeds):
-        print('Generating image for seed %d (%d/%d) ...' % (seed, seed_idx, len(seeds)))
+        print('Generating image for seed %d (%d/%d) ...' %
+              (seed, seed_idx, len(seeds)))
 
         # Construct an inverse rotation/translation matrix and pass to the generator.  The
         # generator expects this matrix as an inverse to avoid potentially failing numerical
@@ -115,12 +122,13 @@ def generate_images(
         w = gen_utils.get_w_from_seed(G, batch_sz, device, truncation_psi, seed=seed,
                                       centroids_path=centroids_path, class_idx=class_idx)
         img = gen_utils.w_to_img(G, w, to_np=True)
-        PIL.Image.fromarray(gen_utils.create_image_grid(img), 'RGB').save(f'{outdir}/seed{seed:04d}.png')
+        PIL.Image.fromarray(gen_utils.create_image_grid(
+            img), 'L').save(f'{outdir}/seed{seed:04d}.png')
 
 
-#----------------------------------------------------------------------------
+# ----------------------------------------------------------------------------
 
 if __name__ == "__main__":
-    generate_images() # pylint: disable=no-value-for-parameter
+    generate_images()  # pylint: disable=no-value-for-parameter
 
-#----------------------------------------------------------------------------
+# ----------------------------------------------------------------------------
